@@ -96,17 +96,20 @@ int main(int argc, const char * argv[]) {
     
     vector<vector<uint64_t>> links (titles.size(), vector<uint64_t>{});
     
-    vector<vector<uint64_t>> links (titles.size(), vector<uint64_t> {});
-    bool first_loop = true;
-    
-    while (getline(infile, input_line)) {
-        if (input_line[0] == 0x00) {
-            
-            if (first_loop) {
-                first_loop = false;
-            } else {
-                links[index].shrink_to_fit();
-                index++;
+    {
+        uint64_t index = -1;
+        enum class State {
+            Nullbyte,
+            Title,
+            Links
+        };
+        auto state = State::Nullbyte;
+        std::string line;
+        process_file_chars(argv[1], [&](char c) {
+            if (c == '\0') {
+                state = State::Nullbyte;
+                ++index;
+                return;
             }
             switch (state) {
                 case State::Nullbyte:
