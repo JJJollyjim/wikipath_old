@@ -22,10 +22,37 @@ void print_string_vec(const vector<string>& v) {
     }
 }
 
-vector<uint64_t> pathfind(vector<vector<uint64_t>> *graph, uint64_t startpoint, uint64_t destination) {
+auto pathfind(vector<vector<uint64_t>> &graph, uint64_t startpoint, uint64_t destination) {
+    vector<int32_t> distances (graph.size(), -1);
+    vector<int64_t> parents (graph.size(), -1);
     
+    queue<int64_t> q;
     
-    return {};
+    q.push(startpoint);
+    distances[startpoint] = 0;
+    
+    int64_t current_idx;
+    int32_t current_distance;
+    while (!q.empty()) {
+        current_idx = q.front();
+        current_distance = distances[current_idx];
+        
+        q.pop();
+        
+        for (auto child : graph[current_idx]) {
+            if (distances[child] == -1) {
+                if (child == destination) {
+                    return current_distance + 1;
+                }
+                
+                distances[child] = current_distance + 1;
+                parents[child] = current_idx;
+                q.push(child);
+            }
+        }
+    }
+    
+    return -1;
 }
 
 int main(int argc, const char * argv[]) {
@@ -60,7 +87,7 @@ int main(int argc, const char * argv[]) {
     infile.seekg(0);
     index = 0;
     
-    vector<vector<uint64_t>> links (titles.size(), {});
+    vector<vector<uint64_t>> links (titles.size(), vector<uint64_t> {});
     bool first_loop = true;
     
     while (getline(infile, input_line)) {
@@ -90,12 +117,7 @@ int main(int argc, const char * argv[]) {
     
     cout << "Step 2 complete" << endl;
     
-    string title = "Harrier Jump Jet";
-    uint64_t id = indices[title];
-    
-    pathfind(&links, indices["Breadth-first search"], indices["Abstract data type"]);
+    pathfind(links, indices["Breadth-first search"], indices["Abstract data type"]);
 
     return 0;
 }
-
-
