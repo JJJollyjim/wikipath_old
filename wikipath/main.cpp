@@ -140,7 +140,7 @@ int main(int argc, const char * argv[]) {
     
     cout << "Step 2 complete" << endl;
     
-    pathfind(links, indices["Breadth-first search"], indices["Abstract data type"]);
+    cout << pathfind(links, indices["Breadth-first search"], indices["Abstract data type"]) << endl;
 
     return 0;
 }
