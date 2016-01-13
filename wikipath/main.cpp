@@ -13,6 +13,7 @@
 #include <vector>
 #include <array>
 #include <fstream>
+#include "fileinput.hpp"
 
 using namespace std;
 
@@ -56,36 +57,44 @@ auto pathfind(vector<vector<uint64_t>> &graph, uint64_t startpoint, uint64_t des
 }
 
 int main(int argc, const char * argv[]) {
-    // insert code here...
-    
-    fstream infile(argv[1]);
-
-    string input_line;
     vector<string> titles;
     unordered_map<string, uint64_t> indices;
-    uint64_t index = 0;
     
-    while (getline(infile, input_line)) {
-        /*cout << input_line[0];*/
-        
-        
-        if (input_line[0] == 0x00) {
-            getline(infile, input_line);
-            
-            titles.push_back(input_line);
-            indices[input_line] = index;
-            index++;
-        }
-        
+    {
+        enum class State {
+            Skipping, Copying
+        };
+        auto state = State::Skipping;
+        uint64_t index = 0;
+        string input_line;
+        process_file_chars(argv[1], [&state, &input_line, &titles, &indices, &index](char c) {
+            if (state == State::Skipping) {
+                if (c == '\0') {
+                    state = State::Copying;
+                }
+            } else {
+                if (c == '\n') {
+                    if (input_line.empty()) {
+                        return; // newline after \0, so stay in copying state
+                    } else {
+                        state = State::Skipping;
+                        titles.push_back(input_line);
+                        indices[input_line] = index;
+                        ++index;
+                        input_line.clear();
+                    }
+                } else {
+                    input_line.push_back(c);
+                }
+            }
+        });
     }
     
     titles.shrink_to_fit();
     
     cout << "Step 1 complete" << endl;
     
-    infile.clear();
-    infile.seekg(0);
-    index = 0;
+    vector<vector<uint64_t>> links (titles.size(), vector<uint64_t>{});
     
     vector<vector<uint64_t>> links (titles.size(), vector<uint64_t> {});
     bool first_loop = true;
@@ -99,21 +108,32 @@ int main(int argc, const char * argv[]) {
                 links[index].shrink_to_fit();
                 index++;
             }
-            
-            getline(infile, input_line);
-            
-        } else {
-            if (input_line[0] >= 'a' && input_line[0] <= 'z'){
-                input_line[0] -= 32;
+            switch (state) {
+                case State::Nullbyte:
+                    if (c == '\n') {
+                        state = State::Title;
+                    }
+                    break;
+                case State::Title:
+                    if (c == '\n') {
+                        state = State::Links;
+                    }
+                    break;
+                case State::Links:
+                    if (c != '\n') {
+                        line.push_back(c);
+                    } else {
+                        if (line[0] >= 'a' && line[0] <= 'z')
+                            line[0] -= 32;
+                        if (indices[line] != 0) {
+                            links[index].push_back(indices[line]);
+                        }
+                        line.clear();
+                    }
+                    break;
             }
-            
-            if (indices[input_line] != 0) {
-                links[index].push_back(indices[input_line]);
-            }
-        }
+        });
     }
-    
-    links.shrink_to_fit();
     
     cout << "Step 2 complete" << endl;
     
