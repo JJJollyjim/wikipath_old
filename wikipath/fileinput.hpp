@@ -2,25 +2,17 @@
 #define fileinput_hpp
 
 #include <iostream>
-#include <unordered_map>
-#include <map>
-#include <queue>
-#include <vector>
-#include <array>
 #include <fstream>
 #include <sstream>
 #include <sys/stat.h>
 
-// 6,325,645,779
-
 template <typename F>
 void process_file(const char *path, std::streamsize max_block_size, F lambda) {
+    // void lambda(std::string)
     
     struct stat st;
     stat(path, &st);
     const std::streamsize char_count = st.st_size;
-    
-    // void lambda(std::string)
     std::fstream in{path};
     
     std::streamsize current_pos = 0;
