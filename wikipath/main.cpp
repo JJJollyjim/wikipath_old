@@ -94,10 +94,9 @@ int main(int argc, const char * argv[]) {
     
     cout << "Step 1 complete" << endl;
     
-    vector<vector<uint64_t>> links (titles.size(), vector<uint64_t>{});
+    vector<vector<uint64_t>> links(titles.size(), vector<uint64_t>{});
     
     {
-        uint64_t index = -1;
         enum class State {
             Nullbyte,
             Title,
@@ -105,10 +104,12 @@ int main(int argc, const char * argv[]) {
         };
         auto state = State::Nullbyte;
         std::string line;
+        line.resize(256);
+        vector<uint64_t> *links_index = &links[0];
         process_file_chars(argv[1], [&](char c) {
             if (c == '\0') {
                 state = State::Nullbyte;
-                ++index;
+                ++links_index;
                 return;
             }
             switch (state) {
@@ -129,7 +130,7 @@ int main(int argc, const char * argv[]) {
                         if (line[0] >= 'a' && line[0] <= 'z')
                             line[0] -= 32;
                         if (indices[line] != 0) {
-                            links[index].push_back(indices[line]);
+                            links_index->push_back(indices[line]);
                         }
                         line.clear();
                     }
